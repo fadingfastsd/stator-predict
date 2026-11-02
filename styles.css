@@ -1,0 +1,699 @@
+/* Stator Predict - Motorcycle Stator Winding & Dyno Telemetry UI */
+:root {
+  --bg-deep: #080c14;
+  --bg-card: #0f172a;
+  --bg-card-hover: #17223b;
+  --bg-input: #1e293b;
+  --border-subtle: #25334d;
+  --border-bright: #3b82f6;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --phase-a: #ef4444;
+  --phase-b: #f59e0b;
+  --phase-c: #38bdf8;
+  --phase-aux: #a855f7;
+
+  --cyan-glow: #06b6d4;
+  --green-glow: #10b981;
+  --redline: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Header */
+header {
+  background: linear-gradient(180deg, #101726 0%, #0b101c 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+}
+
+.logo-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: #ffffff;
+}
+
+h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #f8fafc, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* App Main Layout Grid */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr 430px;
+  gap: 14px;
+  padding: 14px;
+  height: calc(100vh - 65px);
+  overflow: hidden;
+}
+
+@media (max-width: 1400px) {
+  main {
+    grid-template-columns: 290px 1fr 390px;
+  }
+}
+
+@media (max-width: 1100px) {
+  main {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow-y: auto;
+  }
+}
+
+/* Panel Containers */
+.panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.panel-header {
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.4);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-content {
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Section Box */
+.config-group {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.config-group-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #38bdf8;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Form Controls */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.form-row.single {
+  grid-template-columns: 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+}
+
+.field label .unit {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-family: monospace;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: monospace;
+  outline: none;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+  border-color: var(--cyan-glow);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+select {
+  cursor: pointer;
+}
+
+/* Center Column - Visualizer & Dyno Spin-up */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.stator-canvas-container {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at center, #0f1a30 0%, #080c14 75%);
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#canvasStator {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Canvas Floating Toolbar */
+.canvas-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.wiring-badge {
+  background: rgba(236, 72, 153, 0.2);
+  border: 1px solid #ec4899;
+  color: #f472b6;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(236, 72, 153, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 2px rgba(236, 72, 153, 0.2); }
+}
+
+/* Pole Quick Inspector Drawer */
+.pole-inspector-card {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  padding: 12px 16px;
+  z-index: 20;
+  display: none;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.inspector-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inspector-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-group {
+  display: inline-flex;
+  border-radius: 6px;
+  background: #1e293b;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-toggle.active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.btn-toggle.phase-a.active { background: var(--phase-a); color: #fff; }
+.btn-toggle.phase-b.active { background: var(--phase-b); color: #000; }
+.btn-toggle.phase-c.active { background: var(--phase-c); color: #000; }
+.btn-toggle.phase-aux.active { background: var(--phase-aux); color: #fff; }
+
+/* Dyno Tachometer & Spin Up Bar */
+.dyno-control-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tach-cluster {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.analog-dial {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1e293b 0%, #0b101c 100%);
+  border: 2px solid #334155;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+.dial-needle {
+  position: absolute;
+  width: 2px;
+  height: 22px;
+  background: #ef4444;
+  top: 4px;
+  left: 24px;
+  transform-origin: bottom center;
+  transform: rotate(-110deg);
+  transition: transform 0.04s linear;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.dial-center-pin {
+  width: 8px;
+  height: 8px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 2;
+}
+
+.tach-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.tach-rpm-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: #f8fafc;
+  line-height: 1.1;
+}
+
+.tach-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Slider */
+.slider-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slider-container input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 70%, #ef4444 100%);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0284c7;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+  cursor: pointer;
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-family: monospace;
+}
+
+/* Action Buttons */
+.btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #283548;
+  border-color: #475569;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.35);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1, #0284c7);
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.55);
+}
+
+.btn-danger {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn.active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+/* Right Column - Dyno Charts & Telemetry */
+.charts-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.chart-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.chart-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.canvas-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: #090e17;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+  overflow: hidden;
+}
+
+.canvas-osc-wrap {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #05080f;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+  overflow: hidden;
+}
+
+/* Live Telemetry Digits Bar */
+.telemetry-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.telemetry-cell {
+  background: #0b1120;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+}
+
+.telemetry-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: #38bdf8;
+  line-height: 1.1;
+}
+
+.telemetry-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.metric-card {
+  background: #0b1120;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.metric-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: #f1f5f9;
+}
+
+.metric-sub {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Slot Fill Alert Box */
+.alert-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  margin-top: 6px;
+  display: none;
+}
+
+/* Footer / Quick info */
+.legend-pills {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  align-items: center;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #1e293b;
+  font-family: monospace;
+  font-size: 0.68rem;
+}
+
+.pill.phase-a { border: 1px solid var(--phase-a); color: var(--phase-a); }
+.pill.phase-b { border: 1px solid var(--phase-b); color: var(--phase-b); }
+.pill.phase-c { border: 1px solid var(--phase-c); color: var(--phase-c); }
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080c14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #25334d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}

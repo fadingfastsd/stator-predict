@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stator Predict - Motorcycle Stator Winding & Dyno Telemetry</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" stroke-width="2"/>
+          <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="2"/>
+          <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>STATOR PREDICT</h1>
+        <div class="subtitle">Motorcycle Alternator Winding CAD & Dyno Telemetry</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btnAudioToggle" class="btn">
+        <span class="icon">🔇</span> Sound: OFF
+      </button>
+      <button id="btnExportJson" class="btn" title="Save this winding design to JSON file">
+        💾 Save Design
+      </button>
+      <button id="btnImportJson" class="btn" title="Open a saved JSON winding design">
+        📂 Load Design
+      </button>
+      <input type="file" id="fileImportJson" accept=".json" style="display: none;">
+      <button id="btnExportCsv" class="btn" title="Export 500-10,000 RPM dyno curve data to CSV">
+        📊 Export CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Workstation Layout -->
+  <main>
+
+    <!-- LEFT COLUMN: Stator & Flywheel Specifications -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>⚙️ Stator & Flywheel Spec</h2>
+      </div>
+
+      <div class="panel-content">
+
+        <!-- Motorcycle Presets -->
+        <div class="config-group">
+          <div class="config-group-title">⚡ OEM Motorcycle Presets</div>
+          <div class="field">
+            <select id="selectPreset">
+              <!-- Dynamically populated from presets.js -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Stator Core Geometry -->
+        <div class="config-group">
+          <div class="config-group-title">📐 Stator Core Dimensions</div>
+          
+          <div class="form-row">
+            <div class="field">
+              <label>Outer Dia (OD) <span class="unit">mm</span></label>
+              <input type="number" id="inputOD" value="115" min="40" max="250" step="1">
+            </div>
+            <div class="field">
+              <label>Inner Dia (ID) <span class="unit">mm</span></label>
+              <input type="number" id="inputID" value="54" min="20" max="180" step="1">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Core Thickness <span class="unit">mm</span></label>
+              <input type="number" id="inputCoreThick" value="22" min="5" max="80" step="0.5">
+            </div>
+            <div class="field">
+              <label>Air Gap <span class="unit">mm</span></label>
+              <input type="number" id="inputAirgap" value="0.8" min="0.3" max="3.0" step="0.1">
+            </div>
+          </div>
+
+          <div class="form-row single">
+            <div class="field">
+              <label>Number of Stator Poles (Teeth)</label>
+              <input type="number" id="inputStatorPoles" value="12" min="4" max="36" step="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Rotor Flywheel Magnet Configuration -->
+        <div class="config-group">
+          <div class="config-group-title">🧲 Flywheel Permanent Magnets</div>
+          
+          <div class="form-row">
+            <div class="field">
+              <label>Magnet Strength <span class="unit">Gauss</span></label>
+              <input type="number" id="inputGauss" value="8500" min="1000" max="15000" step="100">
+            </div>
+            <div class="field">
+              <label>Rotor Magnets <span class="unit">Poles</span></label>
+              <input type="number" id="inputRotorPoles" value="14" min="2" max="32" step="2">
+            </div>
+          </div>
+        </div>
+
+        <!-- Wire Gauge & Turns -->
+        <div class="config-group">
+          <div class="config-group-title">🧵 Winding & Wire Gauge</div>
+          
+          <div class="form-row single">
+            <div class="field">
+              <label>Copper Wire Gauge (AWG)</label>
+              <select id="selectWireAWG">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Turns / Pole <span class="unit">turns</span></label>
+              <input type="number" id="inputTurns" value="38" min="5" max="250" step="1">
+            </div>
+            <div class="field">
+              <label>Topology</label>
+              <select id="selectTopology">
+                <option value="wye">3-Phase Wye (Star)</option>
+                <option value="delta">3-Phase Delta (Δ)</option>
+                <option value="single_phase">Single-Phase Series</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Electrical Load System -->
+        <div class="config-group">
+          <div class="config-group-title">🔋 Electrical Load Model</div>
+          
+          <div class="form-row single">
+            <div class="field">
+              <label>System Load Type</label>
+              <select id="selectLoadType">
+                <option value="battery_14v">12V/14.4V Battery + Regulator</option>
+                <option value="resistive">Fixed / Matched Resistive Load</option>
+                <option value="open_circuit">Open-Circuit Voltage (No Load)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Regulator Voltage <span class="unit">V</span></label>
+              <input type="number" id="inputBatteryVoltage" value="14.4" min="6" max="48" step="0.1">
+            </div>
+            <div class="field" style="display: none;">
+              <label>Resistance <span class="unit">Ω</span></label>
+              <input type="number" id="inputLoadResistance" value="2.5" min="0.1" max="100" step="0.1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Winding Presets -->
+        <div class="config-group">
+          <div class="config-group-title">✨ Quick Auto-Wiring Tools</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button id="btnAutoWireWye" class="btn" style="justify-content: center;">
+              Auto-Wire 3-Phase Wye (A-B-C)
+            </button>
+            <button id="btnAutoWireDelta" class="btn" style="justify-content: center;">
+              Auto-Wire 3-Phase Delta (Δ)
+            </button>
+            <button id="btnAutoWireSingle" class="btn" style="justify-content: center;">
+              Auto-Wire Single-Phase (All Series)
+            </button>
+            <button id="btnAlternateDirs" class="btn" style="justify-content: center;">
+              Alternate Directions (CW-CCW-CW...)
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: Interactive Stator Core Canvas & Dyno Spin-Up -->
+    <section class="center-panel">
+      
+      <div class="stator-canvas-container">
+        <!-- Floating Canvas Toolbar -->
+        <div class="canvas-toolbar">
+          <button id="btnWiringMode" class="btn" title="Click two poles in sequence to connect them in series">
+            🔗 Connect Poles Tool
+          </button>
+          <div id="wiringStatusBadge" class="wiring-badge">
+            ● Click 1st Pole, then 2nd Pole to Connect
+          </div>
+        </div>
+
+        <!-- Interactive Stator & Flywheel Canvas -->
+        <canvas id="canvasStator"></canvas>
+
+        <!-- Pole Quick Inspector Drawer -->
+        <div id="poleInspector" class="pole-inspector-card">
+          <div class="inspector-header">
+            <div class="inspector-title">
+              <span id="inspectorPoleId">Pole #1</span>
+              <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">— Click options below:</span>
+            </div>
+            <button id="btnCloseInspector" class="btn" style="padding: 2px 8px; font-size: 0.7rem;">✕</button>
+          </div>
+
+          <div class="inspector-row">
+            <!-- Phase Select -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.72rem; color: #94a3b8;">Phase:</span>
+              <div class="btn-group">
+                <button id="btnPhaseA" class="btn-toggle phase-a">Phase A</button>
+                <button id="btnPhaseB" class="btn-toggle phase-b">Phase B</button>
+                <button id="btnPhaseC" class="btn-toggle phase-c">Phase C</button>
+                <button id="btnPhaseAux" class="btn-toggle phase-aux">Aux</button>
+                <button id="btnPhaseNone" class="btn-toggle">None</button>
+              </div>
+            </div>
+
+            <!-- Direction Select -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.72rem; color: #94a3b8;">Winding Dir:</span>
+              <div class="btn-group">
+                <button id="btnDirCW" class="btn-toggle">↷ CW (+)</button>
+                <button id="btnDirCCW" class="btn-toggle">↶ CCW (−)</button>
+              </div>
+            </div>
+
+            <!-- Turns Input -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.72rem; color: #94a3b8;">Turns:</span>
+              <input type="number" id="inputPoleTurns" value="38" min="1" max="300" style="width: 65px; padding: 4px 6px;">
+              <button id="btnApplyAllTurns" class="btn" style="padding: 4px 8px; font-size: 0.72rem;" title="Apply this turns count to all poles">
+                Apply to All
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dyno Tachometer & Interactive RPM Spin-Up Bar -->
+      <div class="dyno-control-bar">
+        <!-- Analog Tachometer Needle Dial -->
+        <div class="tach-cluster">
+          <div class="analog-dial">
+            <div id="tachNeedle" class="dial-needle"></div>
+            <div class="dial-center-pin"></div>
+          </div>
+          <div class="tach-text">
+            <div id="displayRpm" class="tach-rpm-val">1,000 RPM</div>
+            <div class="tach-label">Engine Tachometer</div>
+          </div>
+        </div>
+
+        <!-- Scrub Slider -->
+        <div class="slider-container">
+          <input type="range" id="sliderRpm" min="500" max="10000" step="50" value="1000">
+          <div class="slider-ticks">
+            <span>500 (Idle)</span>
+            <span>2,500</span>
+            <span>5,000 (Cruise)</span>
+            <span>7,500</span>
+            <span style="color: #ef4444;">10,000 (Redline)</span>
+          </div>
+        </div>
+
+        <!-- Spin Up Action Button -->
+        <div>
+          <button id="btnSpinUp" class="btn btn-primary" style="padding: 10px 18px; font-size: 0.85rem;">
+            🚀 Spin Up (500 → 10,000 RPM)
+          </button>
+          <button id="btnStopSpin" class="btn btn-danger" style="display: none; padding: 10px 18px; font-size: 0.85rem;">
+            ⏹ Stop
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Dyno Charts & Telemetry -->
+    <section class="charts-panel">
+
+      <!-- Live Digital Telemetry Strip -->
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <div id="livePowerWatts" class="telemetry-num" style="color: #38bdf8;">0.0 W</div>
+          <div class="telemetry-label">Power Output</div>
+        </div>
+        <div class="telemetry-cell">
+          <div id="liveVoltage" class="telemetry-num" style="color: #4ade80;">14.4 V</div>
+          <div class="telemetry-label">DC Voltage</div>
+        </div>
+        <div class="telemetry-cell">
+          <div id="liveCurrent" class="telemetry-num" style="color: #f59e0b;">0.00 A</div>
+          <div class="telemetry-label">DC Current</div>
+        </div>
+      </div>
+
+      <!-- Power vs RPM Dyno Curve Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span>📈 Power vs RPM Dyno Curve (500 – 10,000 RPM)</span>
+          </div>
+        </div>
+        <div class="canvas-chart-wrap">
+          <canvas id="canvasPower"></canvas>
+        </div>
+      </div>
+
+      <!-- Real-Time AC Oscilloscope -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span>⚡ AC Waveforms & Diode Rectification</span>
+          </div>
+        </div>
+        <div class="canvas-osc-wrap">
+          <canvas id="canvasOscilloscope"></canvas>
+        </div>
+      </div>
+
+      <!-- Stator Electrical & Slot Engineering Metrics -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span>🔬 Electrical & Thermal Diagnostics</span>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div id="metricPeakPower" class="metric-val" style="color: #38bdf8;">-- W</div>
+            <div id="metricPeakRpm" class="metric-sub">Peak Output</div>
+          </div>
+          <div class="metric-card">
+            <div id="metricCutInRpm" class="metric-val" style="color: #4ade80;">-- RPM</div>
+            <div class="metric-sub">Cut-In Charging RPM</div>
+          </div>
+
+          <div class="metric-card">
+            <div id="metricSlotFill" class="metric-val">--%</div>
+            <div class="metric-sub">Slot Copper Fill Factor</div>
+          </div>
+          <div class="metric-card">
+            <div id="metricMaxAmps" class="metric-val" style="color: #f59e0b;">-- A</div>
+            <div class="metric-sub">Max DC Charging Current</div>
+          </div>
+
+          <div class="metric-card">
+            <div id="metricPhaseRes" class="metric-val">-- Ω</div>
+            <div class="metric-sub">Phase Resistance (65°C)</div>
+          </div>
+          <div class="metric-card">
+            <div id="metricPhaseInd" class="metric-val">-- mH</div>
+            <div class="metric-sub">Synchronous Inductance</div>
+          </div>
+
+          <div class="metric-card">
+            <div id="metricFluxDensity" class="metric-val">-- T</div>
+            <div class="metric-sub">Airgap Peak Flux Density</div>
+          </div>
+          <div class="metric-card">
+            <div id="metricWireLength" class="metric-val">-- m</div>
+            <div class="metric-sub">Total Copper Wire / Phase</div>
+          </div>
+        </div>
+
+        <div id="slotFillAlert" class="alert-box"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Application Entry Point (File-protocol compatible bundle) -->
+  <script src="stator-bundle.js"></script>
+</body>
+</html>
